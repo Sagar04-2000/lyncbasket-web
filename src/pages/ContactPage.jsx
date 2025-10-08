@@ -171,7 +171,7 @@ const ContactPage = () => {
                     <div className="text-lg">📧</div>
                     <div>
                       <p className="font-semibold text-gray-800">Email</p>
-                      <p className="text-gray-600">hello@lynkbasket.com</p>
+                      <p className="text-gray-600">mohit@lynkbasket.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -240,7 +240,7 @@ const ContactPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a>
-                  href="mailto:hello@lynkbasket.com"
+                  href="mailto:mohit@lynkbasket.com"
                   className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold text-center hover:bg-gray-100 transition-all duration-300 shadow-lg"
                 </a>
                  Email Us
