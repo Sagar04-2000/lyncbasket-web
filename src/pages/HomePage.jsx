@@ -131,36 +131,36 @@ const HomePage = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {benefits.map((benefit, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative flex flex-col"
-              >
-                <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
-                  {benefit.emoji}
-                </div>
+  {benefits.map((benefit, idx) => (
+    <div
+      key={idx}
+      className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative flex flex-col min-h-[420px]"
+    >
+      <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+        {benefit.emoji}
+      </div>
 
-                <div className="mb-6">
-                  <div
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-${benefit.color}-100 text-${benefit.color}-800 mb-4`}
-                  >
-                    {benefit.tag}
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">{benefit.title}</h3>
-                  <p className="text-gray-600 text-base leading-relaxed">{benefit.description}</p>
-                </div>
+      <div className="mb-6">
+        <div
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-${benefit.color}-100 text-${benefit.color}-800 mb-4`}
+        >
+          {benefit.tag}
+        </div>
+        <h3 className="text-xl font-bold text-gray-800 mb-3">{benefit.title}</h3>
+        <p className="text-gray-600 text-base leading-relaxed">{benefit.description}</p>
+      </div>
 
-                <div
-                  className={`bg-gradient-to-r from-${benefit.color}-50 to-${benefit.color}-100 p-6 rounded-2xl border border-${benefit.color}-200 mt-auto`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`w-3 h-3 bg-${benefit.color}-500 rounded-full`}></div>
-                    <span className={`font-semibold text-${benefit.color}-800 text-sm`}>Key Benefit</span>
-                  </div>
-                  <p className={`font-bold text-${benefit.color}-900 text-base leading-tight`}>{benefit.benefit}</p>
-                </div>
-              </div>
-            ))}
+      <div
+        className={`bg-gradient-to-r from-${benefit.color}-50 to-${benefit.color}-100 p-6 rounded-2xl border border-${benefit.color}-200 mt-auto`}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className={`w-3 h-3 bg-${benefit.color}-500 rounded-full`}></div>
+          <span className={`font-semibold text-${benefit.color}-800 text-sm`}>Key Benefit</span>
+        </div>
+        <p className={`font-bold text-${benefit.color}-900 text-base leading-snug`}>{benefit.benefit}</p>
+      </div>
+    </div>
+  ))}
           </div>
 
           <div className="text-center mt-16">
@@ -199,3 +199,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
