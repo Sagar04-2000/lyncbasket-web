@@ -139,6 +139,7 @@ const HomePage = () => {
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
                   {benefit.emoji}
                 </div>
+
                 <div className="mb-6">
                   <div
                     className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-${benefit.color}-100 text-${benefit.color}-800 mb-4`}
@@ -148,6 +149,7 @@ const HomePage = () => {
                   <h3 className="text-xl font-bold text-gray-800 mb-3">{benefit.title}</h3>
                   <p className="text-gray-600 text-base leading-relaxed">{benefit.description}</p>
                 </div>
+
                 <div
                   className={`bg-gradient-to-r from-${benefit.color}-50 to-${benefit.color}-100 p-6 rounded-2xl border border-${benefit.color}-200 mt-auto`}
                 >
@@ -155,7 +157,7 @@ const HomePage = () => {
                     <div className={`w-3 h-3 bg-${benefit.color}-500 rounded-full`}></div>
                     <span className={`font-semibold text-${benefit.color}-800 text-sm`}>Key Benefit</span>
                   </div>
-                  <p className={`font-bold text-${benefit.color}-900 text-base`}>{benefit.benefit}</p>
+                  <p className={`font-bold text-${benefit.color}-900 text-base leading-tight`}>{benefit.benefit}</p>
                 </div>
               </div>
             ))}
