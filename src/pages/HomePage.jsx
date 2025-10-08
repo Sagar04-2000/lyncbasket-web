@@ -44,7 +44,7 @@ const HomePage = () => {
       title: 'Grow Organic Traffic With High-Authority Placements',
       description:
         'Quality backlinks from trusted sources that drive referral traffic and improve search engine rankings.',
-      benefit: 'More visitors & qualified leads',
+      benefit: 'Drive targeted traffic that converts into qualified leads',
       color: 'green',
     },
     {
