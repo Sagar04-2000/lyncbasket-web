@@ -239,18 +239,18 @@ const ContactPage = () => {
                 Join 500+ businesses that trust LynkBasket for their link building needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <a>
+                <a
                   href="mailto:mohit@lynkbasket.com"
                   className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold text-center hover:bg-gray-100 transition-all duration-300 shadow-lg"
+                >
+                  Email Us
                 </a>
-                 Email Us
-                <a>
-                
+                <a
                   href="tel:5551234567"
                   className="border-2 border-white text-white px-6 py-3 rounded-xl font-bold text-center hover:bg-white hover:text-blue-600 transition-all duration-300"
-                </a>
+                >
                   Call Now
-                
+                </a>
               </div>
             </div>
           </div>
