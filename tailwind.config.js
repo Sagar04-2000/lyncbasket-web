@@ -1,0 +1,62 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./public/index.html"
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          500: '#06b6d4',
+          600: '#0891b2',
+          700: '#0e7490',
+          800: '#155e75',
+          900: '#164e63',
+        },
+        accent: {
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+        },
+      },
+    },
+  },
+  plugins: [],
+  safelist: [
+    'bg-blue-50',
+    'bg-blue-100',
+    'bg-blue-500',
+    'bg-green-50',
+    'bg-green-100',
+    'bg-green-500',
+    'bg-purple-50',
+    'bg-purple-100',
+    'bg-purple-500',
+    'bg-orange-50',
+    'bg-orange-100',
+    'bg-orange-500',
+    'text-blue-800',
+    'text-blue-900',
+    'text-green-800',
+    'text-green-900',
+    'text-purple-800',
+    'text-purple-900',
+    'text-orange-800',
+    'text-orange-900',
+    'border-blue-200',
+    'border-green-200',
+    'border-purple-200',
+    'border-orange-200',
+    'from-blue-500',
+    'from-green-500',
+    'from-purple-500',
+    'from-orange-500',
+    'to-blue-600',
+    'to-green-600',
+    'to-purple-600',
+    'to-orange-600',
+  ],
+}
