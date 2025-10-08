@@ -94,7 +94,7 @@ const HomePage = () => {
                       {feature.tag}
                     </div>
                     <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                    <p className="text-gray-600 text-base leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
               ))}
@@ -134,7 +134,7 @@ const HomePage = () => {
             {benefits.map((benefit, idx) => (
               <div
                 key={idx}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative"
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative flex flex-col"
               >
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
                   {benefit.emoji}
@@ -145,19 +145,17 @@ const HomePage = () => {
                   >
                     {benefit.tag}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">{benefit.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">{benefit.title}</h3>
+                  <p className="text-gray-600 text-base leading-relaxed">{benefit.description}</p>
                 </div>
                 <div
-                  className={`bg-gradient-to-r from-${benefit.color}-50 to-${benefit.color}-100 p-6 rounded-2xl border border-${benefit.color}-200`}
+                  className={`bg-gradient-to-r from-${benefit.color}-50 to-${benefit.color}-100 p-6 rounded-2xl border border-${benefit.color}-200 mt-auto`}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`w-3 h-3 bg-${benefit.color}-500 rounded-full`}></div>
-                    <span className={`font-bold text-${benefit.color}-800`}>Key Benefit</span>
+                    <span className={`font-semibold text-${benefit.color}-800 text-sm`}>Key Benefit</span>
                   </div>
-                  <p className={`font-bold text-${benefit.color}-900 text-lg`}>
-                    {benefit.benefit}
-                  </p>
+                  <p className={`font-bold text-${benefit.color}-900 text-base`}>{benefit.benefit}</p>
                 </div>
               </div>
             ))}
