@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import apiService from '../services/apiService';
+import ReCAPTCHA from "react-google-recaptcha";
 
 const ContactPage = () => {
   const { showNotification } = useApp();
@@ -8,10 +9,22 @@ const ContactPage = () => {
     fullName: '',
     email: '',
     website: '',
+    services: [],
     budget: '$1,000 - $2,500',
     message: '',
   });
+
+  const serviceOptions = [
+    { id: 'guest-posting', label: 'Guest Post Outreach' },
+    { id: 'link-insertion', label: 'Niche Edits(Link Insertion)' },
+    { id: 'authority-link-building', label: 'Authority Link Building' },
+    { id: 'local-link-building', label: 'Local Link Building' },
+    { id: 'blogger-influencer-outreach', label: 'Blogger & Influencer Outreach' },
+    { id: 'other' , label: 'Other'}
+  ];
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const recaptchaRef = useRef(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,8 +33,31 @@ const ContactPage = () => {
     });
   };
 
+  const handleServiceChange = (serviceId) => {
+    setFormData(prevData => {
+      const services = prevData.services.includes(serviceId)
+        ? prevData.services.filter(id => id !== serviceId)
+        : [...prevData.services, serviceId];
+      return { ...prevData, services };
+    });
+  };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Check if reCAPTCHA is verified
+    const recaptchaValue = recaptchaRef.current.getValue();
+    if (!recaptchaValue) {
+      showNotification('Please complete the reCAPTCHA verification', 'error');
+      return;
+    }
+
+    // Check if at least one service is selected
+    if (formData.services.length === 0) {
+      showNotification('Please select at least one service', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -36,9 +72,12 @@ const ContactPage = () => {
         fullName: '',
         email: '',
         website: '',
+        services: [],
         budget: '$1,000 - $2,500',
         message: '',
       });
+       // Reset reCAPTCHA
+      recaptchaRef.current.reset();
     } catch (error) {
       showNotification('Failed to submit form. Please try again.', 'error');
     } finally {
@@ -114,6 +153,33 @@ const ContactPage = () => {
                   />
                 </div>
 
+                 <div>
+                  <label className="block text-gray-700 font-semibold mb-3">
+                    Services Interested In *
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {serviceOptions.map((service) => (
+                      <label
+                        key={service.id}
+                        className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-cyan-400 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.services.includes(service.id)}
+                          onChange={() => handleServiceChange(service.id)}
+                          className="w-5 h-5 text-cyan-500 rounded focus:ring-2 focus:ring-cyan-500"
+                        />
+                        <span className="text-gray-700 font-medium">{service.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.services.length > 0 && (
+                    <p className="mt-2 text-sm text-cyan-600 font-medium">
+                      {formData.services.length} service{formData.services.length > 1 ? 's' : ''} selected
+                    </p>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-gray-700 font-semibold mb-2">
                     Monthly Budget Range
@@ -145,6 +211,12 @@ const ContactPage = () => {
                   />
                 </div>
 
+                 <div className="flex justify-center">
+                  <ReCAPTCHA 
+                    sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                    ref={recaptchaRef}
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
