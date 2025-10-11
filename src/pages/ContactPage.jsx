@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import apiService from '../services/apiService';
+import ReCAPTCHA from "react-google-recaptcha";
 
 const ContactPage = () => {
   const { showNotification } = useApp();
@@ -12,6 +13,7 @@ const ContactPage = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const recaptchaRef = useRef(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,8 +22,16 @@ const ContactPage = () => {
     });
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Check if reCAPTCHA is verified
+    const recaptchaValue = recaptchaRef.current.getValue();
+    if (!recaptchaValue) {
+      showNotification('Please complete the reCAPTCHA verification', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -39,6 +49,8 @@ const ContactPage = () => {
         budget: '$1,000 - $2,500',
         message: '',
       });
+       // Reset reCAPTCHA
+      recaptchaRef.current.reset();
     } catch (error) {
       showNotification('Failed to submit form. Please try again.', 'error');
     } finally {
@@ -145,6 +157,12 @@ const ContactPage = () => {
                   />
                 </div>
 
+                 <div className="flex justify-center">
+                  <ReCAPTCHA 
+                    sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                    ref={recaptchaRef}
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
