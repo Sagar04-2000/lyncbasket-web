@@ -3,14 +3,12 @@ import { Plus, Edit, Trash } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatDate, generateExcerpt } from '../utils/helpers';
 import BlogEditorModal from '../components/modals/BlogEditorModal';
-import BlogDetailModal from '../components/modals/BlogDetailModal';
 
 const BlogPage = () => {
   const { isAdmin, blogs, addBlog, updateBlog, deleteBlog, logout } = useApp();
   const [showEditor, setShowEditor] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [selectedBlog, setSelectedBlog] = useState(null);
 
   const handleCreateBlog = () => {
     setEditingBlog(null);
@@ -33,16 +31,74 @@ const BlogPage = () => {
   };
 
   const handleViewBlog = (blog) => {
-    setSelectedBlog(blog);
-    setShowDetail(true);
+    setSelectedBlog(blog); // open the blog page view
   };
 
   const handleDeleteBlog = (blogId) => {
     if (window.confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
       deleteBlog(blogId);
+      if (selectedBlog?.id === blogId) setSelectedBlog(null); // go back if deleting current blog
     }
   };
 
+  // If a blog is selected, render the full blog page
+  if (selectedBlog) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => setSelectedBlog(null)}
+            className="mb-8 px-4 py-2 bg-blue-500 text-white rounded-lg"
+          >
+            ← Back to Blogs
+          </button>
+          <h1 className="text-4xl font-bold mb-4">{selectedBlog.title}</h1>
+          <div className="text-gray-600 mb-6">
+            {formatDate(selectedBlog.createdAt)} • {selectedBlog.author}
+          </div>
+          {selectedBlog.image && (
+            <img
+              src={selectedBlog.image}
+              alt={selectedBlog.title}
+              className="w-full h-auto rounded-lg mb-6"
+            />
+          )}
+          <div className="text-gray-800 leading-relaxed whitespace-pre-line mb-6">
+            {selectedBlog.content}
+          </div>
+          {isAdmin && (
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleEditBlog(selectedBlog)}
+                className="px-4 py-2 bg-yellow-500 text-white rounded-lg"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteBlog(selectedBlog.id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Blog Editor Modal */}
+        <BlogEditorModal
+          isOpen={showEditor}
+          onClose={() => {
+            setShowEditor(false);
+            setEditingBlog(null);
+          }}
+          onSave={handleSaveBlog}
+          blog={editingBlog}
+        />
+      </section>
+    );
+  }
+
+  // Otherwise, render the blog list
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -200,18 +256,6 @@ const BlogPage = () => {
         }}
         onSave={handleSaveBlog}
         blog={editingBlog}
-      />
-
-      {/* Blog Detail Modal */}
-      <BlogDetailModal
-        isOpen={showDetail}
-        onClose={() => {
-          setShowDetail(false);
-          setSelectedBlog(null);
-        }}
-        blog={selectedBlog}
-        onEdit={handleEditBlog}
-        onDelete={deleteBlog}
       />
     </section>
   );
