@@ -9,9 +9,11 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
-            <h3 className="text-2xl font-black mb-6 bg-gradient-to-r from-cyan-500 to-amber-500 bg-clip-text text-transparent">
-              LynkBasket
-            </h3>
+       <h3 className="text-2xl font-black mb-6 bg-gradient-to-r from-blue-700 to-blue-700 bg-clip-text text-transparent">
+  LynkBasket
+</h3>
+
+
             <p className="text-gray-300 mb-6 leading-relaxed">
               Premium link building services that deliver real results through ethical,
               transparent strategies.

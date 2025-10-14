@@ -25,9 +25,16 @@ const Header = () => {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 cursor-pointer" onClick={() => navigateToPage('home')}>
-            <h1 className="text-2xl font-black bg-gradient-to-r from-cyan-500 to-amber-500 bg-clip-text text-transparent">
-              LynkBasket
-            </h1>
+    <h1 className="text-2xl font-black flex items-center gap-2">
+  <span className="bg-gradient-to-r from-blue-700 to-blue-700 bg-clip-text text-transparent">🔗 LynkBasket</span>
+</h1>
+
+
+
+
+
+
+
           </div>
 
           <div className="hidden md:block">
