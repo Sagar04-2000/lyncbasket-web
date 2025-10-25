@@ -62,11 +62,11 @@ const ContactPage = () => {
 
     try {
       // Uncomment this when backend is ready
-      // await apiService.submitContactForm(formData);
-      
+      const response= await apiService.submitContactForm(formData);
+      console.log("Response "+JSON.stringify(response));
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+     // await new Promise((resolve) => setTimeout(resolve, 1000));
+      if(response.status=200) {
       showNotification('Thank you for your inquiry! We will respond within 2 hours.', 'success');
       setFormData({
         fullName: '',
@@ -78,8 +78,27 @@ const ContactPage = () => {
       });
        // Reset reCAPTCHA
       recaptchaRef.current.reset();
+    } else {
+      showNotification(response.message || 'Failed to submit form. Please try again.', 'error');
+    }
     } catch (error) {
-      showNotification('Failed to submit form. Please try again.', 'error');
+     console.error('Form submission error:', error);
+      
+      // Handle different error types
+      if (error.response) {
+        // Server responded with error
+        const errorMessage = error.response.data?.message || 'Failed to submit form. Please try again.';
+        showNotification(errorMessage, 'error');
+      } else if (error.request) {
+        // Request made but no response
+        showNotification('Unable to reach the server. Please check your connection and try again.', 'error');
+      } else {
+        // Other errors
+        showNotification('An unexpected error occurred. Please try again.', 'error');
+      }
+      
+      // Reset reCAPTCHA on error
+      recaptchaRef.current.reset();
     } finally {
       setIsSubmitting(false);
     }
