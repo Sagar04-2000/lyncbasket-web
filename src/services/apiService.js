@@ -1,6 +1,6 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
-// Helper function for API calls
+// Generic API helper
 const apiCall = async (endpoint, options = {}) => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -11,11 +11,24 @@ const apiCall = async (endpoint, options = {}) => {
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const text = await response.text();
+
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      data = text;
     }
 
-    return await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || `HTTP error! Status: ${response.status}`);
+    }
+
+    return {
+      status: response.status,
+      data,
+    };
+
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
@@ -24,27 +37,21 @@ const apiCall = async (endpoint, options = {}) => {
 
 const apiService = {
   // Blog APIs
-  getAllBlogs: async () => {
-    return apiCall('/blogs');
-  },
+  getAllBlogs: async () => apiCall('/blogs'),
 
-  getBlogById: async (id) => {
-    return apiCall(`/blogs/${id}`);
-  },
+  getBlogById: async (id) => apiCall(`/blogs/${id}`),
 
-  createBlog: async (blogData) => {
-    return apiCall('/blogs', {
+  createBlog: async (blogData) =>
+    apiCall('/blogs', {
       method: 'POST',
       body: JSON.stringify(blogData),
-    });
-  },
+    }),
 
-  updateBlog: async (id, blogData) => {
-    return apiCall(`/blogs/${id}`, {
+  updateBlog: async (id, blogData) =>
+    apiCall(`/blogs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(blogData),
-    });
-  },
+    }),
 
   deleteBlog: async (id) => {
     const response = await fetch(`${API_BASE_URL}/blogs/${id}`, {
@@ -53,21 +60,20 @@ const apiService = {
     return response.ok;
   },
 
-  // Contact Form API
+  // Contact Form API (FIXED)
   submitContactForm: async (formData) => {
-    return apiCall('/contact', {
+    return apiCall('/contact/submit', {
       method: 'POST',
       body: JSON.stringify(formData),
     });
   },
 
   // Admin Authentication
-  login: async (credentials) => {
-    return apiCall('/auth/login', {
+  login: async (credentials) =>
+    apiCall('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
-    });
-  },
+    }),
 };
 
 export default apiService;

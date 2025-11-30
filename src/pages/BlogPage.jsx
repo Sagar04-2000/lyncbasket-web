@@ -5,11 +5,18 @@ import { formatDate, generateExcerpt } from '../utils/helpers';
 import BlogEditorModal from '../components/modals/BlogEditorModal';
 
 const BlogPage = () => {
-  const { isAdmin, blogs, addBlog, updateBlog, deleteBlog, logout } = useApp();
+  const { isAdmin, blogs, addBlog, updateBlog, deleteBlog, logout, navigateToPage } = useApp();
   const [showEditor, setShowEditor] = useState(false);
   const [editingBlog, setEditingBlog] = useState(null);
   const [selectedBlog, setSelectedBlog] = useState(null);
 
+  // Detect /admin or /admin/dashboard
+  const path = window.location.pathname;
+  const isAdminRoute = path === "/admin" || path === "/admin/dashboard";
+
+  // -------------------------
+  // CRUD Actions
+  // -------------------------
   const handleCreateBlog = () => {
     setEditingBlog(null);
     setShowEditor(true);
@@ -30,32 +37,36 @@ const BlogPage = () => {
     setEditingBlog(null);
   };
 
-  const handleViewBlog = (blog) => {
-    setSelectedBlog(blog); // open the blog page view
-  };
+  const handleViewBlog = (blog) => setSelectedBlog(blog);
 
   const handleDeleteBlog = (blogId) => {
-    if (window.confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
+    if (window.confirm("Are you sure you want to delete this blog post?")) {
       deleteBlog(blogId);
-      if (selectedBlog?.id === blogId) setSelectedBlog(null); // go back if deleting current blog
+      if (selectedBlog?.id === blogId) setSelectedBlog(null);
     }
   };
 
-  // If a blog is selected, render the full blog page
+  // =====================================================
+  // SINGLE BLOG VIEW (User reading page)
+  // =====================================================
   if (selectedBlog) {
     return (
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
           <button
             onClick={() => setSelectedBlog(null)}
             className="mb-8 px-4 py-2 bg-blue-500 text-white rounded-lg"
           >
             ← Back to Blogs
           </button>
+
           <h1 className="text-4xl font-bold mb-4">{selectedBlog.title}</h1>
+
           <div className="text-gray-600 mb-6">
             {formatDate(selectedBlog.createdAt)} • {selectedBlog.author}
           </div>
+
           {selectedBlog.image && (
             <img
               src={selectedBlog.image}
@@ -63,9 +74,13 @@ const BlogPage = () => {
               className="w-full h-auto rounded-lg mb-6"
             />
           )}
-          <div className="text-gray-800 leading-relaxed whitespace-pre-line mb-6">
-            {selectedBlog.content}
-          </div>
+
+          {/* ⭐ Full HTML Rendering */}
+          <div
+            className="prose max-w-none text-gray-800 leading-relaxed mb-6"
+            dangerouslySetInnerHTML={{ __html: selectedBlog.content }}
+          ></div>
+
           {isAdmin && (
             <div className="flex gap-4">
               <button
@@ -84,7 +99,6 @@ const BlogPage = () => {
           )}
         </div>
 
-        {/* Blog Editor Modal */}
         <BlogEditorModal
           isOpen={showEditor}
           onClose={() => {
@@ -98,42 +112,41 @@ const BlogPage = () => {
     );
   }
 
-  // Otherwise, render the blog list
+  // =====================================================
+  // BLOG LIST PAGE
+  // =====================================================
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="flex justify-between items-center mb-16">
-          <div className="text-center flex-1">
-            <div className="inline-block mb-4 bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 rounded-full text-white font-semibold text-sm">
-              Latest Insights
-            </div>
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
-              Expert SEO & Link Building Blog
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Stay updated with the latest strategies, case studies, and industry insights from our
-              team of SEO experts.
-            </p>
+      <div className="max-w-7xl mx-auto px-4">
+
+        {/* Admin Login Button Only at /admin */}
+        {isAdminRoute && !isAdmin && (
+          <div className="flex justify-end mb-8">
+            <button
+              onClick={() => navigateToPage("admin-login")}
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              Admin Login
+            </button>
           </div>
-        </div>
+        )}
 
         {/* Admin Panel */}
         {isAdmin && (
           <div className="mb-8 bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-300">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Admin Panel</h3>
+              <h3 className="text-lg font-bold">Admin Panel</h3>
+
               <div className="flex gap-4">
                 <button
                   onClick={handleCreateBlog}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
                 >
-                  <Plus className="w-4 h-4" />
-                  Create New Blog
+                  + Create New Blog
                 </button>
                 <button
                   onClick={logout}
-                  className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-colors"
+                  className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold"
                 >
                   Logout
                 </button>
@@ -142,112 +155,25 @@ const BlogPage = () => {
           </div>
         )}
 
-        {/* No Blogs Message */}
-        {blogs.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-6">📝</div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">No Blog Posts Yet</h3>
-            <p className="text-xl text-gray-600 mb-8">
-              Be the first to share insights with our community!
-            </p>
-            {isAdmin && (
-              <button
-                onClick={handleCreateBlog}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all"
-              >
-                Write First Blog Post
-              </button>
-            )}
-          </div>
-        ) : (
-          /* Blog Grid */
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogs.map((blog) => (
-              <div
-                key={blog.id}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer relative group"
-                onClick={() => handleViewBlog(blog)}
-              >
-                {/* Icon Badge */}
-                <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  📝
-                </div>
+        {/* Blog Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {blogs.map((blog) => (
+            <div
+              key={blog.id}
+              className="p-8 bg-white shadow-lg rounded-2xl cursor-pointer"
+              onClick={() => handleViewBlog(blog)}
+            >
+              <h3 className="text-xl font-bold mb-4">{blog.title}</h3>
 
-                {/* Featured Image */}
-                {blog.image && (
-                  <div className="mb-6 overflow-hidden rounded-xl relative">
-                    <img
-                      src={blog.image}
-                      alt={blog.title}
-                      className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                )}
-
-                {/* Blog Content */}
-                <div className="mb-6">
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-4">
-                    {formatDate(blog.createdAt)} • {blog.author}
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {blog.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed mb-6 line-clamp-3">
-                    {generateExcerpt(blog.content)}
-                  </p>
-                </div>
-
-                {/* Footer */}
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-2xl border border-blue-200">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-blue-600 font-semibold group-hover:text-blue-700 transition-colors">
-                      <span>Read Full Article</span>
-                      <span className="transform group-hover:translate-x-1 transition-transform duration-300">
-                        →
-                      </span>
-                    </div>
-                    {isAdmin && (
-                      <div
-                        className="flex gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditBlog(blog);
-                          }}
-                          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:shadow-lg transition-all transform hover:scale-105"
-                          title="Edit Blog"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteBlog(blog.id);
-                          }}
-                          className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-2 rounded-lg text-sm hover:shadow-lg transition-all transform hover:scale-105"
-                          title="Delete Blog"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              {/* Show only clean text preview, not HTML */}
+              <p className="text-gray-600">
+                {generateExcerpt(blog.content.replace(/<[^>]+>/g, ""))}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Blog Editor Modal */}
       <BlogEditorModal
         isOpen={showEditor}
         onClose={() => {

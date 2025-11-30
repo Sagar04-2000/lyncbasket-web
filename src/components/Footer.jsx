@@ -70,7 +70,7 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-6">Contact</h4>
             <div className="text-gray-300 space-y-3">
               <p>📧 mohit@lynkbasket.com</p>
-              <p>📞 (555) 123-4567</p>
+              <p>📞 9130114411</p>
               <p>🕐 Response within 2 hours</p>
               <button
                 onClick={() => navigateToPage('contact')}

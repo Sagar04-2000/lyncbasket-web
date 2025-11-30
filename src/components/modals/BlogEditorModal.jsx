@@ -1,58 +1,238 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
+
+const ToolbarButton = ({ active, title, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={title}
+    className={`px-3 py-2 rounded border ${
+      active ? "bg-cyan-100 border-cyan-300" : "bg-white border-gray-300"
+    } hover:brightness-95 transition-all`}
+  >
+    {children}
+  </button>
+);
 
 const BlogEditorModal = ({ isOpen, onClose, onSave, blog }) => {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [image, setImage] = useState('');
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [image, setImage] = useState("");
   const editorRef = useRef(null);
 
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    heading: null,
+    align: null,
+  });
+
+  // ---------------------------
+  // Initialize editor
+  // ---------------------------
   useEffect(() => {
     if (blog) {
-      setTitle(blog.title);
-      setAuthor(blog.author);
-      setImage(blog.image || '');
-      if (editorRef.current) {
-        editorRef.current.innerHTML = blog.content;
-      }
+      setTitle(blog.title || "");
+      setAuthor(blog.author || "");
+      setImage(blog.image || "");
+      if (editorRef.current) editorRef.current.innerHTML = blog.content || "";
     } else {
-      setTitle('');
-      setAuthor('');
-      setImage('');
-      if (editorRef.current) {
-        editorRef.current.innerHTML = '<p>Start writing your blog content here...</p>';
-      }
+      setTitle("");
+      setAuthor("");
+      setImage("");
+      if (editorRef.current)
+        editorRef.current.innerHTML =
+          "<p>Start writing your blog content here...</p>";
     }
+
+    setActiveFormats({
+      bold: false,
+      italic: false,
+      underline: false,
+      heading: null,
+      align: null,
+    });
   }, [blog, isOpen]);
 
-  if (!isOpen) return null;
+  const findBlockParent = (node) => {
+    while (node && node !== editorRef.current) {
+      if (node.nodeType === 1) {
+        const tag = node.tagName.toUpperCase();
+        if (["H1", "H2", "H3", "P", "DIV"].includes(tag)) {
+          return { node, tag };
+        }
+      }
+      node = node.parentNode;
+    }
+    return null;
+  };
 
+  const updateActiveFormats = () => {
+    if (!editorRef.current) return;
+    try {
+      const sel = document.getSelection();
+      const anchorNode = sel?.anchorNode;
+      if (!anchorNode || !editorRef.current.contains(anchorNode)) {
+        setActiveFormats({
+          bold: false,
+          italic: false,
+          underline: false,
+          heading: null,
+          align: null,
+        });
+        return;
+      }
+
+      const bold = document.queryCommandState("bold");
+      const italic = document.queryCommandState("italic");
+      const underline = document.queryCommandState("underline");
+
+      const found = findBlockParent(anchorNode);
+      let heading = null;
+      let align = null;
+      if (found) {
+        if (found.tag.startsWith("H")) heading = found.tag;
+        const computed = window.getComputedStyle(found.node);
+        const textAlign = computed.textAlign;
+        if (["left", "center", "right"].includes(textAlign)) align = textAlign;
+      }
+
+      setActiveFormats({
+        bold,
+        italic,
+        underline,
+        heading,
+        align,
+      });
+    } catch {}
+  };
+
+  useEffect(() => {
+    document.addEventListener("selectionchange", updateActiveFormats);
+    return () =>
+      document.removeEventListener("selectionchange", updateActiveFormats);
+  }, []);
+
+  const execCommand = (command, value = null) => {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+
+    if (command === "formatBlock" && value) {
+      try {
+        document.execCommand("formatBlock", false, `<${value.toLowerCase()}>`);
+      } catch {
+        document.execCommand("formatBlock", false, value);
+      }
+    } else {
+      document.execCommand(command, false, value);
+    }
+
+    setTimeout(updateActiveFormats, 0);
+  };
+
+  // ---------------------------
+  // Insert Link
+  // ---------------------------
+  const insertLink = () => {
+    const url = prompt("Enter the URL (include https://):", "https://");
+    if (url) execCommand("createLink", url);
+  };
+
+  // ---------------------------
+  // Upload File (Local System)
+  // ---------------------------
+  const uploadFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+
+      // Insert Image
+      if (file.type.startsWith("image/")) {
+        const html = `<img src="${base64}" style="max-width:100%; margin:20px 0;" />`;
+        document.execCommand("insertHTML", false, html);
+      }
+
+      // Insert Video
+      else if (file.type.startsWith("video/")) {
+        const html = `
+          <video controls style="max-width:100%; margin:20px 0;">
+            <source src="${base64}" type="${file.type}" />
+          </video>
+        `;
+        document.execCommand("insertHTML", false, html);
+      }
+
+      // Insert ANY OTHER FILE
+      else {
+        const html = `
+          <a href="${base64}" download="${file.name}" 
+             style="color:blue; text-decoration:underline; margin:20px 0; display:block;">
+             📄 Download ${file.name}
+          </a>
+        `;
+        document.execCommand("insertHTML", false, html);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  // ---------------------------
+  // Insert VIDEO from URL
+  // ---------------------------
+  const insertVideoURL = () => {
+    let url = prompt("Enter YouTube or video URL:");
+    if (!url) return;
+
+    let embedURL = url;
+
+    if (url.includes("youtube.com/watch?v=")) {
+      const id = url.split("v=")[1];
+      embedURL = `https://www.youtube.com/embed/${id}`;
+    }
+
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1];
+      embedURL = `https://www.youtube.com/embed/${id}`;
+    }
+
+    const iframe = `
+      <div style="margin: 20px 0;">
+        <iframe 
+          width="560" height="315"
+          src="${embedURL}"
+          frameborder="0" allowfullscreen>
+        </iframe>
+      </div>
+    `;
+
+    editorRef.current.focus();
+    document.execCommand("insertHTML", false, iframe);
+  };
+
+  // ---------------------------
+  // Submit Form
+  // ---------------------------
   const handleSubmit = (e) => {
     e.preventDefault();
-    const content = editorRef.current.innerHTML;
-    const textContent = editorRef.current.textContent.trim();
 
-    if (!title.trim()) {
-      alert('Please enter a blog title!');
-      return;
-    }
-    if (!author.trim()) {
-      alert('Please enter the author name!');
-      return;
-    }
-    if (!textContent || textContent === 'Start writing your blog content here...') {
-      alert('Please add some content to your blog post!');
-      return;
-    }
+    const content = editorRef.current?.innerHTML || "";
+    const textContent = editorRef.current?.textContent?.trim() || "";
+
+    if (!title.trim()) return alert("Please enter a blog title!");
+    if (!author.trim()) return alert("Please enter the author name!");
+    if (!textContent || textContent === "Start writing your blog content here...")
+      return alert("Please add some content!");
 
     onSave({ title, author, image, content });
     onClose();
   };
 
-  const execCommand = (command, value = null) => {
-    document.execCommand(command, false, value);
-    editorRef.current.focus();
-  };
+  if (!isOpen) return null;
 
   return (
     <div
@@ -63,137 +243,180 @@ const BlogEditorModal = ({ isOpen, onClose, onSave, blog }) => {
         className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {blog ? 'Edit Blog Post' : 'Create New Blog Post'}
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-2xl font-bold">
+            {blog ? "Edit Blog Post" : "Create New Blog Post"}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
-            <X />
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X size={28} />
           </button>
         </div>
 
+        {/* Body */}
         <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Title + Author */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">Blog Title *</label>
+                <label className="font-semibold">Blog Title *</label>
                 <input
-                  type="text"
+                  className="w-full border px-4 py-3 rounded-xl"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">Author Name *</label>
+                <label className="font-semibold">Author *</label>
                 <input
-                  type="text"
+                  className="w-full border px-4 py-3 rounded-xl"
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
                   required
                 />
               </div>
             </div>
 
+            {/* Featured Image */}
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">Featured Image URL</label>
+              <label className="font-semibold">Featured Image URL</label>
               <input
-                type="url"
+                className="w-full border px-4 py-3 rounded-xl"
+                placeholder="https://example.com/image.jpg"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
-                placeholder="https://example.com/image.jpg"
               />
             </div>
 
+            {/* Editor */}
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">Blog Content *</label>
-              <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-gray-50 border-b border-gray-200 p-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => execCommand('bold')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Bold"
+              <label className="font-semibold">Blog Content *</label>
+
+              <div className="border rounded-xl overflow-hidden">
+                {/* Toolbar */}
+                <div className="bg-gray-50 border-b p-3 flex flex-wrap gap-2 items-center">
+                  <ToolbarButton
+                    active={activeFormats.bold}
+                    onClick={() => execCommand("bold")}
                   >
-                    <strong>B</strong>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('italic')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Italic"
+                    <b>B</b>
+                  </ToolbarButton>
+
+                  <ToolbarButton
+                    active={activeFormats.italic}
+                    onClick={() => execCommand("italic")}
                   >
                     <em>I</em>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('underline')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Underline"
+                  </ToolbarButton>
+
+                  <ToolbarButton
+                    active={activeFormats.underline}
+                    onClick={() => execCommand("underline")}
                   >
                     <u>U</u>
-                  </button>
-                  <div className="border-l border-gray-300 mx-2"></div>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('formatBlock', 'h2')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Heading 2"
+                  </ToolbarButton>
+
+                  <div className="border-l h-6 mx-2" />
+
+                  {/* Headings */}
+                  <ToolbarButton
+                    active={activeFormats.heading === "H1"}
+                    onClick={() => execCommand("formatBlock", "H1")}
+                  >
+                    H1
+                  </ToolbarButton>
+                  <ToolbarButton
+                    active={activeFormats.heading === "H2"}
+                    onClick={() => execCommand("formatBlock", "H2")}
                   >
                     H2
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('formatBlock', 'h3')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Heading 3"
+                  </ToolbarButton>
+                  <ToolbarButton
+                    active={activeFormats.heading === "H3"}
+                    onClick={() => execCommand("formatBlock", "H3")}
                   >
                     H3
-                  </button>
-                  <div className="border-l border-gray-300 mx-2"></div>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('insertUnorderedList')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Bullet List"
+                  </ToolbarButton>
+
+                  <div className="border-l h-6 mx-2" />
+
+                  {/* ⭐ Upload Button */}
+                  <input
+                    type="file"
+                    id="uploadInput"
+                    className="hidden"
+                    onChange={uploadFile}
+                  />
+
+                  <ToolbarButton
+                    title="Upload File"
+                    onClick={() => document.getElementById("uploadInput").click()}
                   >
-                    •
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execCommand('insertOrderedList')}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100"
-                    title="Numbered List"
+                    📤
+                  </ToolbarButton>
+
+                  {/* Insert Video via URL */}
+                  <ToolbarButton
+                    title="Insert Video URL"
+                    onClick={insertVideoURL}
                   >
-                    1.
-                  </button>
+                    🎥
+                  </ToolbarButton>
+
+                  <div className="border-l h-6 mx-2" />
+
+                  <ToolbarButton onClick={insertLink}>🔗</ToolbarButton>
+
+                  <div className="border-l h-6 mx-2" />
+
+                  <ToolbarButton onClick={() => execCommand("justifyLeft")}>
+                    ⟵
+                  </ToolbarButton>
+                  <ToolbarButton onClick={() => execCommand("justifyCenter")}>
+                    ↔
+                  </ToolbarButton>
+                  <ToolbarButton onClick={() => execCommand("justifyRight")}>
+                    ⟶
+                  </ToolbarButton>
+
+                  <div className="border-l h-6 mx-2" />
+
+                  <ToolbarButton onClick={() => execCommand("undo")}>
+                    ↶
+                  </ToolbarButton>
+                  <ToolbarButton onClick={() => execCommand("redo")}>
+                    ↷
+                  </ToolbarButton>
                 </div>
 
+                {/* Content Area */}
                 <div
                   ref={editorRef}
                   contentEditable
                   className="min-h-[400px] max-h-[400px] overflow-y-auto p-4 focus:outline-none prose max-w-none"
-                  style={{ lineHeight: '1.8' }}
+                  style={{ lineHeight: 1.8 }}
+                  onInput={updateActiveFormats}
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 justify-end pt-6 border-t border-gray-200">
+            {/* Footer Buttons */}
+            <div className="flex justify-end gap-4 pt-6 border-t">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 border rounded-xl"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
-                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                className="px-8 py-3 bg-blue-600 text-white rounded-xl"
               >
-                {blog ? 'Update Blog Post' : 'Publish Blog Post'}
+                {blog ? "Update Blog Post" : "Publish Blog Post"}
               </button>
             </div>
           </form>
